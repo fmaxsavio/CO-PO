@@ -15,25 +15,35 @@ function processExcel() {
         const workbook = XLSX.read(data, { type: "array" });
         const sheet = workbook.Sheets[workbook.SheetNames[0]];
 
-        let row = 3; // Start from row C3
-        while (sheet[`C${row}`]) {
-            let inputMarks = parseInt(sheet[`C${row}`].v);
-            if (!isNaN(inputMarks)) {
-                // Get split-up marks
-                let splitMarks = MarkSplitUp(inputMarks);
+        // Identify last row with data in column C
+        let lastRow = findLastRow(sheet, "C");
 
-                // Write values to D-K columns
-                const columns = ["D", "E", "F", "G", "H", "I", "J", "K"];
-                splitMarks.forEach((val, index) => {
-                    let cellRef = `${columns[index]}${row}`;
-                    sheet[cellRef] = { v: val };
-                });
-            }
-            row++;
+        // Process each value in column C from C3 onwards
+        for (let row = 3; row <= lastRow; row++) {
+            let cellRef = "C" + row;
+            let cell = sheet[cellRef];
+
+            if (!cell || isNaN(cell.v)) continue; // Skip invalid or empty cells
+
+            const inputMarks = parseInt(cell.v);
+            const splitMarks = splitMarksFunction(inputMarks);
+            const columns = ["D", "E", "F", "G", "H", "I", "J", "K"];
+
+            splitMarks.forEach((val, index) => {
+                const newCellRef = columns[index] + row;
+                sheet[newCellRef] = { t: "n", v: val }; // Ensure numeric data type
+            });
         }
+
+        // Explicitly update the range to reflect new cells
+        sheet["!ref"] = `A1:K${lastRow}`;
 
         // Save processed workbook
         processedWorkbook = workbook;
+
+        // Generate and save the file
+        saveWorkbookToFile(workbook, "Output.xlsx");
+
         document.getElementById("downloadBtn").style.display = "inline";
         document.getElementById("status").innerText = "Processing complete! Click Download.";
     };
@@ -41,68 +51,62 @@ function processExcel() {
 
 function downloadExcel() {
     if (!processedWorkbook) return;
-    const wbout = XLSX.write(processedWorkbook, { bookType: "xlsx", type: "array" });
-    const blob = new Blob([wbout], { type: "application/octet-stream" });
+    saveWorkbookToFile(processedWorkbook, "Output.xlsx");
+}
+
+// Function to split marks correctly
+function splitMarksFunction(input) {
+    let remaining = input;
+    let splitValues = [0, 0, 0, 0, 0, 0, 0, 0]; // Corresponds to D-K
+
+    // Assign marks to columns D-H (Max 4 each)
+    for (let i = 0; i < 5; i++) {
+        if (remaining >= 4) {
+            splitValues[i] = 4;
+            remaining -= 4;
+        } else {
+            splitValues[i] = remaining;
+            remaining = 0;
+        }
+    }
+
+    // Assign marks to columns I-J (Max 26 each)
+    for (let i = 5; i < 7; i++) {
+        if (remaining >= 26) {
+            splitValues[i] = 26;
+            remaining -= 26;
+        } else {
+            splitValues[i] = remaining;
+            remaining = 0;
+        }
+    }
+
+    // Assign remaining marks to column K (Max 28)
+    splitValues[7] = remaining; // Whatever is left goes to K
+
+    return splitValues;
+}
+
+// Function to determine the last row in column C
+function findLastRow(sheet, column) {
+    let lastRow = 2; // Start at C3 (index 2)
+    while (true) {
+        let cellRef = column + (lastRow + 1);
+        if (!sheet[cellRef] || isNaN(sheet[cellRef].v)) break;
+        lastRow++;
+    }
+    return lastRow;
+}
+
+// Function to save the workbook to a file
+function saveWorkbookToFile(workbook, filename) {
+    const wbout = XLSX.write(workbook, { bookType: "xlsx", type: "array" });
+    const blob = new Blob([wbout], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" });
+    
     const link = document.createElement("a");
     link.href = URL.createObjectURL(blob);
-    link.download = "Output.xlsx";
+    link.download = filename;
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
 }
-
-function MarkSplitUp(input) {
-    let out = findSplitUp(input);
-    while (out[1] !== 0 || out[2] !== input) {
-        out = findSplitUp(input);
-    }
-    return out[0].split(",").map(Number);
-}
-
-function findSplitUp(input) {
-    let toCut = 100 - input;
-    let sum = 0;
-    let splitValues = [];
-
-    for (let i = 0; i < marks.length; i++) {
-        if ((toCut - marks[i]) < 0 && toCut !== 0) {
-            splitValues.push(marks[i] - toCut);
-            sum += marks[i] - toCut;
-            toCut = 0;
-        } else {
-            if (sum === input) {
-                splitValues.push(0);
-                toCut -= marks[i];
-            } else if (toCut === 0 && sum < input) {
-                splitValues.push(marks[i]);
-                sum += marks[i];
-            } else {
-                let r = randomIntFromInterval(0, marks[i]);
-                toCut -= r;
-                sum += marks[i] - r;
-                splitValues.push(marks[i] - r);
-            }
-        }
-    }
-    return [splitValues.join(","), toCut, sum];
-}
-
-function randomIntFromInterval(min, max) {
-    return Math.floor(Math.random() * (max - min + 1) + min);
-}
-
-// Disable right-click on the webpage
-document.addEventListener("contextmenu", function (event) {
-    event.preventDefault();
-});
-
-// Disable certain keyboard shortcuts (optional)
-document.addEventListener("keydown", function (event) {
-    if (
-        event.key === "F12" || 
-        (event.ctrlKey && event.shiftKey && event.key === "I") || 
-        (event.ctrlKey && event.key === "U")
-    ) {
-        event.preventDefault();
-    }
-});
