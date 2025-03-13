@@ -10,25 +10,17 @@ function processExcel() {
 
     const reader = new FileReader();
     reader.readAsArrayBuffer(fileInput);
-    reader.onload = function(e) {
+    reader.onload = function (e) {
         const data = new Uint8Array(e.target.result);
         const workbook = XLSX.read(data, { type: "array" });
         const sheet = workbook.Sheets[workbook.SheetNames[0]];
 
-        // Find the last row in column C
-        let range = XLSX.utils.decode_range(sheet["!ref"]);
-        let lastRow = range.e.r; // Default last row
-        for (let row = 2; row <= lastRow; row++) { // Start from row index 2 (C3 in Excel)
-            let cellRef = "C" + (row + 1);
-            if (!sheet[cellRef] || isNaN(sheet[cellRef].v)) {
-                lastRow = row;
-                break;
-            }
-        }
+        // Identify last row with data in column C
+        let lastRow = findLastRow(sheet, "C");
 
         // Process each value in column C from C3 onwards
-        for (let row = 2; row <= lastRow; row++) {
-            let cellRef = "C" + (row + 1);
+        for (let row = 3; row <= lastRow; row++) {
+            let cellRef = "C" + row;
             let cell = sheet[cellRef];
 
             if (!cell || isNaN(cell.v)) continue; // Skip invalid or empty cells
@@ -38,10 +30,13 @@ function processExcel() {
             const columns = ["D", "E", "F", "G", "H", "I", "J", "K"];
 
             splitMarks.forEach((val, index) => {
-                const newCellRef = columns[index] + (row + 1);
+                const newCellRef = columns[index] + row;
                 sheet[newCellRef] = { t: "n", v: val }; // Ensure numeric data type
             });
         }
+
+        // Explicitly update the range to reflect new cells
+        sheet["!ref"] = `A1:K${lastRow}`;
 
         // Save processed workbook
         processedWorkbook = workbook;
@@ -62,6 +57,7 @@ function downloadExcel() {
     document.body.removeChild(link);
 }
 
+// Function to split marks correctly
 function splitMarksFunction(input) {
     let remaining = input;
     let splitValues = [0, 0, 0, 0, 0, 0, 0, 0]; // Corresponds to D-K
@@ -92,4 +88,15 @@ function splitMarksFunction(input) {
     splitValues[7] = remaining; // Whatever is left goes to K
 
     return splitValues;
+}
+
+// Function to determine the last row in column C
+function findLastRow(sheet, column) {
+    let lastRow = 2; // Start at C3 (index 2)
+    while (true) {
+        let cellRef = column + (lastRow + 1);
+        if (!sheet[cellRef] || isNaN(sheet[cellRef].v)) break;
+        lastRow++;
+    }
+    return lastRow;
 }
