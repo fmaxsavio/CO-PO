@@ -18,12 +18,21 @@ function processExcel() {
         // Identify last row with data in column C
         let lastRow = findLastRow(sheet, "C");
 
-        // Process each value in column C from C3 onwards
+        // Validate column C for non-integer values
         for (let row = 3; row <= lastRow; row++) {
             let cellRef = "C" + row;
             let cell = sheet[cellRef];
 
-            if (!cell || isNaN(cell.v)) continue; // Skip invalid or empty cells
+            if (!cell || isNaN(cell.v) || !Number.isInteger(parseFloat(cell.v))) {
+                alert(`Error in ${cellRef}. Enter the correct data.`);
+                return; // Stop execution if invalid data is found
+            }
+        }
+
+        // Process each value in column C from C3 onwards
+        for (let row = 3; row <= lastRow; row++) {
+            let cellRef = "C" + row;
+            let cell = sheet[cellRef];
 
             const inputMarks = parseInt(cell.v);
             const splitMarks = splitMarksFunction(inputMarks);
