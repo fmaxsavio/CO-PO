@@ -6,12 +6,43 @@
     <title>Excel Marks Split-up</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <script defer src="script.js"></script>
+    <style>
+        body {
+            text-align: center;
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+        }
+        h1 {
+            font-size: 28px;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        h2 {
+            font-size: 20px;
+            color: #555;
+        }
+        .footer {
+            position: fixed;
+            bottom: 10px;
+            right: 20px;
+            font-size: 12px;
+            color: gray;
+        }
+    </style>
 </head>
 <body>
-    <h2>Upload Excel, Process & Download</h2>
+
+    <h1>Saveetha Engineering College</h1>
+    <h2>Total Marks to Split-up Marks</h2>
+
+    <h3>Upload Excel, Process & Download</h3>
     <input type="file" id="uploadFile" />
     <button onclick="processExcel()">Process</button>
     <button id="downloadBtn" style="display:none;" onclick="downloadExcel()">Download Output</button>
     <p id="status"></p>
+
+    <p class="footer">Copyright 2025. All Rights Reserved</p>
+
 </body>
 </html>
