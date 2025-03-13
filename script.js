@@ -26,11 +26,15 @@ function processExcel() {
         // Get split-up marks
         const splitMarks = MarkSplitUp(inputMarks);
 
-        // Write values to D4 to K4
+        // Define columns for output
         const columns = ["D", "E", "F", "G", "H", "I", "J", "K"];
+
+        // Ensure we don't exceed the available columns
         splitMarks.forEach((val, index) => {
-            const cellRef = columns[index] + "4";
-            sheet[cellRef] = { v: val };
+            if (index < columns.length) {
+                const cellRef = columns[index] + "4";
+                sheet[cellRef] = { t: "n", v: val }; // Ensuring values are written as numbers
+            }
         });
 
         // Save processed workbook
@@ -57,11 +61,10 @@ function MarkSplitUp(input) {
     while (out[1] !== 0 || out[2] !== input) {
         out = findSplitUp(input);
     }
-    return out[0].split(",").map(Number);
+    return out[0]; // No need to split again, return as array
 }
 
 function findSplitUp(input) {
-    let out = "";
     let toCut = 100 - input;
     let sum = 0;
     let splitValues = [];
@@ -86,7 +89,7 @@ function findSplitUp(input) {
             }
         }
     }
-    return [splitValues.join(","), toCut, sum];
+    return [splitValues, toCut, sum];
 }
 
 function randomIntFromInterval(min, max) {
