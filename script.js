@@ -56,8 +56,10 @@ function processExcel() {
         document.getElementById("downloadBtn").style.display = "inline";
         document.getElementById("status").innerText = "Processing complete! Click Download.";
     };
+   document.addEventListener("contextmenu", function(event) {
+    event.preventDefault();
+  });
 }
-
 function downloadExcel() {
     if (!processedWorkbook) return;
     saveWorkbookToFile(processedWorkbook, "Output.xlsx");
