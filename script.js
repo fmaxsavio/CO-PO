@@ -34,7 +34,7 @@ function processExcel() {
             if (!cell || isNaN(cell.v)) continue; // Skip invalid or empty cells
 
             const inputMarks = parseInt(cell.v);
-            const splitMarks = MarkSplitUp(inputMarks);
+            const splitMarks = splitMarksFunction(inputMarks);
             const columns = ["D", "E", "F", "G", "H", "I", "J", "K"];
 
             splitMarks.forEach((val, index) => {
@@ -62,42 +62,34 @@ function downloadExcel() {
     document.body.removeChild(link);
 }
 
-function MarkSplitUp(input) {
-    let out = findSplitUp(input);
-    while (out[1] !== 0 || out[2] !== input) {
-        out = findSplitUp(input);
-    }
-    return out[0];
-}
+function splitMarksFunction(input) {
+    let remaining = input;
+    let splitValues = [0, 0, 0, 0, 0, 0, 0, 0]; // Corresponds to D-K
 
-function findSplitUp(input) {
-    let toCut = 100 - input;
-    let sum = 0;
-    let splitValues = [];
-
-    for (let i = 0; i < marks.length; i++) {
-        if ((toCut - marks[i]) < 0 && toCut !== 0) {
-            splitValues.push(marks[i] - toCut);
-            sum += marks[i] - toCut;
-            toCut = 0;
+    // Assign marks to columns D-H (Max 4 each)
+    for (let i = 0; i < 5; i++) {
+        if (remaining >= 4) {
+            splitValues[i] = 4;
+            remaining -= 4;
         } else {
-            if (sum === input) {
-                splitValues.push(0);
-                toCut -= marks[i];
-            } else if (toCut === 0 && sum < input) {
-                splitValues.push(marks[i]);
-                sum += marks[i];
-            } else {
-                let r = randomIntFromInterval(0, marks[i]);
-                toCut -= r;
-                sum += marks[i] - r;
-                splitValues.push(marks[i] - r);
-            }
+            splitValues[i] = remaining;
+            remaining = 0;
         }
     }
-    return [splitValues, toCut, sum];
-}
 
-function randomIntFromInterval(min, max) {
-    return Math.floor(Math.random() * (max - min + 1) + min);
+    // Assign marks to columns I-J (Max 26 each)
+    for (let i = 5; i < 7; i++) {
+        if (remaining >= 26) {
+            splitValues[i] = 26;
+            remaining -= 26;
+        } else {
+            splitValues[i] = remaining;
+            remaining = 0;
+        }
+    }
+
+    // Assign remaining marks to column K (Max 28)
+    splitValues[7] = remaining; // Whatever is left goes to K
+
+    return splitValues;
 }
