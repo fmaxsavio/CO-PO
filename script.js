@@ -56,11 +56,7 @@ function processExcel() {
         document.getElementById("downloadBtn").style.display = "inline";
         document.getElementById("status").innerText = "Processing complete! Click Download.";
     };
-   document.addEventListener("contextmenu", function(event) {
-    event.preventDefault();
-  });
-}
-function downloadExcel() {
+   function downloadExcel() {
     if (!processedWorkbook) return;
     saveWorkbookToFile(processedWorkbook, "Output.xlsx");
 }
@@ -121,3 +117,16 @@ function saveWorkbookToFile(workbook, filename) {
     link.click();
     document.body.removeChild(link);
 }
+document.addEventListener("contextmenu", function (event) {
+    event.preventDefault(); // Disable right-click
+});
+
+document.addEventListener("keydown", function (event) {
+    if (
+        event.key === "F12" || 
+        (event.ctrlKey && event.shiftKey && event.key === "I") || 
+        (event.ctrlKey && event.key === "U")
+    ) {
+        event.preventDefault(); // Disable specific keyboard shortcuts
+    }
+});
