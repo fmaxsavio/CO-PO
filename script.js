@@ -1,4 +1,4 @@
-const marks = [4,4,4,4,4,26,26,28];
+const marks = [4, 4, 4, 4, 4, 26, 26, 28];
 let processedWorkbook;
 
 function processExcel() {
@@ -15,27 +15,33 @@ function processExcel() {
         const workbook = XLSX.read(data, { type: "array" });
         const sheet = workbook.Sheets[workbook.SheetNames[0]];
 
-        // Read value from C3
-        const cellC3 = sheet["C3"];
-        if (!cellC3 || isNaN(cellC3.v)) {
-            alert("C3 is empty or invalid!");
-            return;
-        }
-        const inputMarks = parseInt(cellC3.v);
-
-        // Get split-up marks
-        const splitMarks = MarkSplitUp(inputMarks);
-
-        // Define columns for output
-        const columns = ["D", "E", "F", "G", "H", "I", "J", "K"];
-
-        // Ensure we don't exceed the available columns
-        splitMarks.forEach((val, index) => {
-            if (index < columns.length) {
-                const cellRef = columns[index] + "4";
-                sheet[cellRef] = { t: "n", v: val }; // Ensuring values are written as numbers
+        // Find the last row in column C
+        let range = XLSX.utils.decode_range(sheet["!ref"]);
+        let lastRow = range.e.r; // Default last row
+        for (let row = 2; row <= lastRow; row++) { // Start from row index 2 (C3 in Excel)
+            let cellRef = "C" + (row + 1);
+            if (!sheet[cellRef] || isNaN(sheet[cellRef].v)) {
+                lastRow = row;
+                break;
             }
-        });
+        }
+
+        // Process each value in column C from C3 onwards
+        for (let row = 2; row <= lastRow; row++) {
+            let cellRef = "C" + (row + 1);
+            let cell = sheet[cellRef];
+
+            if (!cell || isNaN(cell.v)) continue; // Skip invalid or empty cells
+
+            const inputMarks = parseInt(cell.v);
+            const splitMarks = MarkSplitUp(inputMarks);
+            const columns = ["D", "E", "F", "G", "H", "I", "J", "K"];
+
+            splitMarks.forEach((val, index) => {
+                const newCellRef = columns[index] + (row + 1);
+                sheet[newCellRef] = { t: "n", v: val }; // Ensure numeric data type
+            });
+        }
 
         // Save processed workbook
         processedWorkbook = workbook;
@@ -61,7 +67,7 @@ function MarkSplitUp(input) {
     while (out[1] !== 0 || out[2] !== input) {
         out = findSplitUp(input);
     }
-    return out[0]; // No need to split again, return as array
+    return out[0];
 }
 
 function findSplitUp(input) {
