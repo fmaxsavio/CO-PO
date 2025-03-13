@@ -40,6 +40,10 @@ function processExcel() {
 
         // Save processed workbook
         processedWorkbook = workbook;
+
+        // Generate and save the file
+        saveWorkbookToFile(workbook, "Output.xlsx");
+
         document.getElementById("downloadBtn").style.display = "inline";
         document.getElementById("status").innerText = "Processing complete! Click Download.";
     };
@@ -47,14 +51,7 @@ function processExcel() {
 
 function downloadExcel() {
     if (!processedWorkbook) return;
-    const wbout = XLSX.write(processedWorkbook, { bookType: "xlsx", type: "array" });
-    const blob = new Blob([wbout], { type: "application/octet-stream" });
-    const link = document.createElement("a");
-    link.href = URL.createObjectURL(blob);
-    link.download = "Output.xlsx";
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+    saveWorkbookToFile(processedWorkbook, "Output.xlsx");
 }
 
 // Function to split marks correctly
@@ -99,4 +96,17 @@ function findLastRow(sheet, column) {
         lastRow++;
     }
     return lastRow;
+}
+
+// Function to save the workbook to a file
+function saveWorkbookToFile(workbook, filename) {
+    const wbout = XLSX.write(workbook, { bookType: "xlsx", type: "array" });
+    const blob = new Blob([wbout], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" });
+    
+    const link = document.createElement("a");
+    link.href = URL.createObjectURL(blob);
+    link.download = filename;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
 }
