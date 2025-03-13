@@ -4,21 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Excel Marks Split-up</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js">
-    document.addEventListener("contextmenu", function (event) {
-    event.preventDefault(); // Disable right-click
-});
-
-document.addEventListener("keydown", function (event) {
-    if (
-        event.key === "F12" || 
-        (event.ctrlKey && event.shiftKey && event.key === "I") || 
-        (event.ctrlKey && event.key === "U")
-    ) {
-        event.preventDefault(); // Disable specific keyboard shortcuts
-    }
-});
-    </script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"> </script>
     <script defer src="script.js"></script>
     <style>
         body {
